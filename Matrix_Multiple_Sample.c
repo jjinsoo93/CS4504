@@ -47,6 +47,7 @@ int main()
     //matrixMulti();
     //clock_t t2 = clock(); 
     //printf("time: %ld", t2-t1);
+    printf("hello world");
 
     double t1 = omp_get_wtime();
     matrixMulti();
