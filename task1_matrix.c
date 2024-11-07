@@ -43,6 +43,13 @@ void matrixInit(int N) {
 }
 
 void matrixMulti(int N) {
+    // Set number of threads dynamically based on the matrix size, limited to a maximum
+    int max_threads = omp_get_max_threads();
+    int desired_threads = (N * N < max_threads * 4) ? N * N : max_threads * 4;  // Use up to max_threads * 4 threads
+    omp_set_num_threads(desired_threads);
+
+    printf("Using %d threads for matrix multiplication\n", desired_threads);
+
     #pragma omp parallel for collapse(2)
     for (int row = 0; row < N; row++) {
         for (int col = 0; col < N; col++) {
