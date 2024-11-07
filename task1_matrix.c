@@ -43,14 +43,12 @@ void matrixInit(int N) {
 }
 
 void matrixMulti(int N) {
-    // Set number of threads dynamically based on the matrix size, limited to a maximum
-    int max_threads = omp_get_max_threads();
-    int desired_threads = (N * N < max_threads * 4) ? N * N : max_threads * 4;  // Use up to max_threads * 4 threads
-    omp_set_num_threads(desired_threads);
+    // Print the number of threads being used
+    int num_threads = omp_get_max_threads();
+    printf("Using %d threads for matrix multiplication\n", num_threads);
 
-    printf("Using %d threads for matrix multiplication\n", desired_threads);
-
-    #pragma omp parallel for collapse(2)
+    // Parallelize by rows to reduce overhead and cache contention
+    #pragma omp parallel for schedule(dynamic)
     for (int row = 0; row < N; row++) {
         for (int col = 0; col < N; col++) {
             double resultValue = 0;
@@ -58,12 +56,12 @@ void matrixMulti(int N) {
                 resultValue += firstMatrix[row][transNumber] * secondMatrix[transNumber][col];
             }
             matrixMultiResult[row][col] = resultValue;
+        }
 
-            // Debug print to check which thread is executing
-            #pragma omp critical
-            {
-                printf("Thread %d calculated matrixMultiResult[%d][%d] = %f\n", omp_get_thread_num(), row, col, resultValue);
-            }
+        // Debug print to check which thread is processing each row
+        #pragma omp critical
+        {
+            printf("Thread %d completed row %d\n", omp_get_thread_num(), row);
         }
     }
 }
