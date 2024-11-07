@@ -5,7 +5,6 @@
 
 #define FactorIntToDouble 1.1
 
-// Global pointers for matrices to handle dynamic size
 double **firstMatrix;
 double **secondMatrix;
 double **matrixMultiResult;
@@ -43,11 +42,10 @@ void matrixInit(int N) {
 }
 
 void matrixMulti(int N) {
-    // Print the number of threads being used
-    int num_threads = omp_get_max_threads();
-    printf("Using %d threads for matrix multiplication\n", num_threads);
+    int desired_threads = 8; // Adjust this based on your system capability
+    omp_set_num_threads(desired_threads);
+    printf("Using %d threads for matrix multiplication\n", desired_threads);
 
-    // Parallelize by rows to reduce overhead and cache contention
     #pragma omp parallel for schedule(dynamic)
     for (int row = 0; row < N; row++) {
         for (int col = 0; col < N; col++) {
@@ -57,7 +55,7 @@ void matrixMulti(int N) {
             }
             matrixMultiResult[row][col] = resultValue;
         }
-
+        
         // Debug print to check which thread is processing each row
         #pragma omp critical
         {
@@ -67,36 +65,30 @@ void matrixMulti(int N) {
 }
 
 int main(int argc, char *argv[]) {
-    // Check for command-line argument for N
     if (argc != 2) {
         printf("Usage: %s <matrix_size>\n", argv[0]);
         return 1;
     }
 
-    // Set matrix size N from command line argument
     int N = atoi(argv[1]);
     if (N <= 0) {
         printf("Matrix size must be a positive integer.\n");
         return 1;
     }
 
-    // Allocate memory for matrices
-    allocateMatrices(N);
+    // Print max threads available for debug
+    printf("Max threads available: %d\n", omp_get_max_threads());
 
-    // Initialize matrices
+    allocateMatrices(N);
     printf("Initializing matrices of size %dx%d...\n", N, N);
     matrixInit(N);
 
-    // Start the parallel matrix multiplication
     printf("Starting parallel matrix multiplication...\n");
     double t1 = omp_get_wtime();
     matrixMulti(N);
     double t2 = omp_get_wtime();
 
-    // Print the execution time
     printf("Parallel time: %f seconds\n", t2 - t1);
-
-    // Free allocated memory
     freeMatrices(N);
 
     return 0;
