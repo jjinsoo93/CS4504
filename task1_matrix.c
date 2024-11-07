@@ -37,6 +37,7 @@ void matrixInit()
 
 int main()
 {
+    printf(N);
     matrixInit();
 
     double t1 = omp_get_wtime();
